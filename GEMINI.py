@@ -14,14 +14,16 @@ import re
 load_dotenv()
 
 # ✅ Define folders
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
-IMAGE_FOLDER = os.path.join(BASE_DIR, "static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+STATIC_FOLDER = os.path.join(BASE_DIR, 'static')
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+GENERATED_FOLDER = os.path.join(BASE_DIR, 'generated')
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(IMAGE_FOLDER, exist_ok=True)
+os.makedirs(GENERATED_FOLDER, exist_ok=True)
 
-app = Flask(__name__, static_folder=IMAGE_FOLDER)
+app = Flask(__name__, static_folder=STATIC_FOLDER)
 
 # ✅ Securely get the API key
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -149,15 +151,15 @@ def upload_pdf():
         return jsonify({"error": "No triples extracted from PDF"}), 500
 
     image_filename = f"{uuid.uuid4().hex}.png"
-    image_path = os.path.join(IMAGE_FOLDER, image_filename)
+    image_path = os.path.join(GENERATED_FOLDER, image_filename)
     build_and_save_graph(triples, image_path)
 
-    return jsonify({"image_url": f"/static/{image_filename}"})
+    return jsonify({"image_url": f"/generated/{image_filename}"})
 
 
-@app.route('/static/<path:filename>')
+@app.route('/generated/<path:filename>')
 def serve_static(filename):
-    return send_from_directory(IMAGE_FOLDER, filename)
+    return send_from_directory(GENERATED_FOLDER, filename)
 
 
 if __name__ == '__main__':
